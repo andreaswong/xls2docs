@@ -1,0 +1,6 @@
+Options -MultiViews
+
+RewriteEngine On
+RewriteBase /xls2docs/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
