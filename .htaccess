@@ -1,4 +1,5 @@
 Options -MultiViews
+Options -Indexes
 
 RewriteEngine On
 #RewriteBase /xls2docs/
