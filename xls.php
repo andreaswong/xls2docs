@@ -13,7 +13,7 @@
     <div class="container p-4">
       <form method="post" enctype="multipart/form-data" type="file">
         <div class="form-group">
-          <label>Choose an excel file (.xls)<br>
+          <label>Choose an excel file (.xls/x)<br>
             <input type="file" name="xls-file" class="form-control-file mt-3 mb-3" id="xls-file">
             <button type="submit">Upload</button>
           </label>
