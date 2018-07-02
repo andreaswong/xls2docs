@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
+use PhpOffice\PhpSpreadsheet\Shared\Date as PHPExcel_Shared_Date;
 use PhpOffice\PhpWord\Style\Font;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
@@ -14,12 +15,13 @@ function handleUpload($xlsPath) {
 	$masterWord = new PhpWord();
 	$masterWriter = IOFactory::createWriter($masterWord, 'Word2007');
 
-	$reader = XLSIOFactory::createReaderForFile($xlsPath);
+	$reader = XLSIOFactory::createReader('Xlsx');
 	$reader->setReadDataOnly(true);
 	$spreadsheet = $reader->load($xlsPath);
 	$worksheet = $spreadsheet->getActiveSheet();
 
 	$fields = [];
+	$dateFields = [];
 	$outputFolder = 'outputs/'.Uuid::uuid4();
 
 	if(!is_dir($outputFolder)) {
@@ -42,7 +44,12 @@ function handleUpload($xlsPath) {
 		$filename = $i;
 		foreach($cellIterator as $j => $cell) {
 			if($i == 1) {
-				$fields[$j] = $cell->getValue();
+				// Header
+				$headerValue = $cell->getValue();
+				$fields[$j] = $headerValue;
+				if(stripos($headerValue, 'date') !== false) {
+					$dateFields[$j] = true;
+				}
 				continue;
 			}
 
@@ -50,12 +57,17 @@ function handleUpload($xlsPath) {
 			if($cellValue != '') {
 				$withValues++;
 
+				if(!empty($dateFields[$j])) {
+					$cellValue = PHPExcel_Shared_Date::excelToTimestamp($cellValue);
+					$cellValue = date('d M Y', $cellValue);
+				}
+
 				$textrun->addText($fields[$j] . ' ', $boldFont);
-				$textrun->addText($cell->getValue());
+				$textrun->addText($cellValue);
 				$textrun->addTextBreak(2);
 
 				$masterTextRun->addText($fields[$j] . ' ', $boldFont);
-				$masterTextRun->addText($cell->getValue());
+				$masterTextRun->addText($cellValue);
 				$masterTextRun->addTextBreak(2);
 			}
 
@@ -72,7 +84,7 @@ function handleUpload($xlsPath) {
 			$objWriter->save($outputFolder.'/'.$filename.'.docx');
 		}
 	}
-
+	
 	$masterWriter->save($outputFolder .'/master.docx');
 
 	$zipArchive = new ZipArchive();
